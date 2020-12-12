@@ -1,67 +1,38 @@
 'use strict';
 
-const { count } = require('console');
 const fs = require('fs');
-const cloneDeep = require('lodash').cloneDeep;
+let text = fs.readFileSync('./d3/input.txt', 'utf-8').trim();
+let rows = text.split('\n');
 
-function addToColumns(curr, add) {
-  for (let i in curr) {
-    curr[i] = [...curr[i], ...add[i]];
-  }
-  return curr;
-}
+function getTrees(x, y) {
+  let index = 0, trees = 0;
+  y--;
 
-function printMap(curr, pos) {
-  for (let i in curr) {
-    if (i <= pos + 1)
-    if (pos >= curr.length - 4)
-      console.log(curr[i].join(''));
-    else break;
-  }
-  // console.log('-----------------------------------------------------------------------------------');
-}
-
-function countTrees(map) {
-  let trees = 0;
-  let found;
-  for (let row in map) {
-    found = map[row].join('').match(new RegExp('X', 'g'));
-    trees += found ? found.length : 0;
-  }
-  console.log(trees);
-}
-
-fs.readFile('./data/d3.txt', 'utf8', (err, data) => {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  let rows = data.split('\n');
-  rows.splice(-1, 1);
   for (let i in rows) {
-    rows[i] = rows[i].split('');
+    const slopeLength = rows[i].length;
+    if (rows[i][index] === "#") trees++;
+    index = (index + x) % slopeLength;
+    i = i + y;
   }
 
-  const copy = cloneDeep(rows);
+  return trees;
+}
 
-  let r = 0, c = 0;
-  let count = 0;
-  while (r <= rows.length) {
-    c += 3;
-    r += 1;
+// console.log(getTrees(3, 1));
 
-    if (r >= rows.length) break;
-    if (c > rows[r].length) {
-      rows = addToColumns(rows, copy);
-    }
+const slopes = [
+  { r: 1, d: 1 },
+  { r: 3, d: 1 },
+  { r: 5, d: 1 },
+  { r: 7, d: 1 },
+  { r: 1, d: 2 }
+];
 
-    rows[r][c] = rows[r][c] == '#' ? 'X' : 'O';
-    count += rows[r][c] == 'X' ? 1 : 0;
-    printMap(rows, r);
-  }
+let ans = slopes.reduce((m, i) => {
+  // console.log(getTrees(i.r, i.d));
+  return m * getTrees(i.r, i.d);
+}, 1);
 
-  countTrees(rows);
-});
+console.log(ans);
 
-// 211 is too low
+// 6889142260 is too high
